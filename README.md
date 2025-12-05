@@ -1,3 +1,5 @@
+https://pkg.go.dev/github.com/chokey2nv/go-mongodb-crud
+
 # go-mongodb-crud
 
 A lightweight, generic, type-safe CRUD layer for MongoDB written in Go. Designed to eliminate repetitive boilerplate across your models while keeping your code simple, predictable, and easy to maintain.
@@ -171,13 +173,6 @@ Flexible struct for filtering, sorting, searching, IDs, and custom MongoDB pipel
 ---
 
 # Example File Structure
-
-```
-cmd/app/main.go
-models/user.go
-internal/db/mongo.go
-go-mongodb-crud/crud/*
-```
 
 ---
 
