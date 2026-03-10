@@ -27,13 +27,16 @@ func (r *RootModel[T]) NewID() primitive.ObjectID {
 func (r *RootModel[T]) Count(ctx context.Context, filter bson.M) (int64, error) {
 	return r.Collection.CountDocuments(ctx, filter)
 }
-func (r *RootModel[T]) Insert(ctx context.Context, data bson.M) (T, error) {
+func (r *RootModel[T]) Insert(ctx context.Context, data bson.M) (*string, error) {
 	ApplyBeforeInsertHooks(data)
 
-	insertRes, err := r.Collection.InsertOne(ctx, data)
+	_, err := r.Collection.InsertOne(ctx, data)
 
-	out, err := r.FindOne(ctx, bson.M{"_id": insertRes.InsertedID})
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	id := data["id"].(string)
+	return &id, nil
 }
 
 func (r *RootModel[T]) Update(ctx context.Context, filter, update bson.M) error {
@@ -43,18 +46,24 @@ func (r *RootModel[T]) Update(ctx context.Context, filter, update bson.M) error 
 	return err
 }
 
-func (r *RootModel[T]) FindOne(ctx context.Context, filter bson.M) (T, error) {
-	var outs []T
-	var out T
-	pipeline := helper.ApplyNamedDateConvs(
+/**
+pipeline := helper.ApplyNamedDateConvs(
 		mongo.Pipeline{},
 		[]string{"createdAt", "updatedAt"},
 	)
 
 	pipeline = append(pipeline, bson.D{
 		{Key: "$match", Value: filter},
-	})
+	})**/
 
+func (r *RootModel[T]) FindOne(ctx context.Context, pipeline mongo.Pipeline) (T, error) {
+	var outs []T
+	var out T
+
+	pipeline = helper.ApplyNamedDateConvs(
+		pipeline,
+		[]string{"createdAt", "updatedAt"},
+	)
 	err := r.Aggregate(ctx, pipeline, &outs)
 
 	if err != nil {
