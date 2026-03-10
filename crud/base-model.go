@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type CustomPipeline func(mongo.Pipeline) mongo.Pipeline
+
 type Identifiable interface {
 	GetId() string
 	// SetId(string)
@@ -23,12 +25,24 @@ func NewBaseModel[T Identifiable](db *mongo.Database, collection string) *BaseMo
 	}
 }
 
-func (m *BaseModel[T]) Insert(ctx context.Context, item T) (T, error) {
+func (m *BaseModel[T]) Insert(ctx context.Context, item T, findPipeline *CustomPipeline) (T, error) {
 	b := bson.M{}
+	var out T
 	helper.StructToBSON(item, &b)
-	return m.root.Insert(ctx, b)
+	id, err := m.root.Insert(ctx, b)
+	if err != nil {
+		return out, err
+	}
+	pipeline := append(mongo.Pipeline{}, bson.D{
+		{Key: "$match", Value: bson.M{"id": id}},
+	})
+
+	if findPipeline != nil {
+		pipeline = (*findPipeline)(pipeline)
+	}
+	return m.root.FindOne(ctx, pipeline)
 }
-func (m *BaseModel[T]) Update(ctx context.Context, id string, item T) (T, error) {
+func (m *BaseModel[T]) Update(ctx context.Context, id string, item T, findPipeline *CustomPipeline) (T, error) {
 	b := bson.M{}
 	helper.StructToBSON(item, &b)
 	var out T
@@ -36,10 +50,16 @@ func (m *BaseModel[T]) Update(ctx context.Context, id string, item T) (T, error)
 	if err != nil {
 		return out, err
 	}
-	return m.root.FindOne(ctx, bson.M{"id": id})
+	pipeline := append(mongo.Pipeline{}, bson.D{
+		{Key: "$match", Value: bson.M{"id": id}},
+	})
+	if findPipeline != nil {
+		pipeline = (*findPipeline)(pipeline)
+	}
+	return m.root.FindOne(ctx, pipeline)
 }
 
-func (m *BaseModel[T]) Get(ctx context.Context, where T) (T, error) {
+func (m *BaseModel[T]) Get(ctx context.Context, where T, findPipeline *CustomPipeline) (T, error) {
 	q := NewQuery()
 
 	if where.GetId() != "" {
@@ -49,13 +69,28 @@ func (m *BaseModel[T]) Get(ctx context.Context, where T) (T, error) {
 		helper.StructToBSON(where, &bsonData)
 		q.Add(bsonData)
 	}
-	return m.root.FindOne(ctx, q.Build())
+
+	pipeline := append(mongo.Pipeline{}, bson.D{
+		{Key: "$match", Value: q.Build()},
+	})
+
+	if findPipeline != nil {
+		pipeline = (*findPipeline)(pipeline)
+	}
+	return m.root.FindOne(ctx, pipeline)
 }
 
-func (m *BaseModel[T]) Exists(ctx context.Context, item T) (bool, error) {
+func (m *BaseModel[T]) Exists(ctx context.Context, item T, findPipeline *CustomPipeline) (bool, error) {
 	bsonData := bson.M{}
 	helper.StructToBSON(item, &bsonData)
-	out, err := m.root.FindOne(ctx, bsonData)
+
+	pipeline := append(mongo.Pipeline{}, bson.D{
+		{Key: "$match", Value: bsonData},
+	})
+	if findPipeline != nil {
+		pipeline = (*findPipeline)(pipeline)
+	}
+	out, err := m.root.FindOne(ctx, pipeline)
 	if err != nil {
 		return false, err
 	}
