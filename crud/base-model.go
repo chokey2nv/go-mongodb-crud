@@ -2,7 +2,6 @@ package crud
 
 import (
 	"context"
-	"log"
 	"reflect"
 
 	"github.com/chokey2nv/go-mongodb-crud/helper"
@@ -159,12 +158,10 @@ func (m *BaseModel[T]) List(
 		q.AddSearch(opt.SearchIn, opt.Search)
 	}
 
-	log.Println("******* 0")
 	if len(opt.Ids) > 0 {
 		q.AddIDs("id", opt.Ids)
 	}
 
-	log.Println("******* 1")
 	if opt.Filter != nil {
 		b := bson.M{}
 		if err := helper.StructToBSON(opt.Filter, &b); err == nil && len(b) > 0 {
@@ -172,12 +169,10 @@ func (m *BaseModel[T]) List(
 		}
 	}
 
-	log.Println("******* 2")
 	if opt.CustomQuery != nil {
 		opt.CustomQuery(q)
 	}
 
-	log.Println("******* 3")
 	pipeline := mongo.Pipeline{}
 
 	if match := q.Build(); len(match) > 0 {
@@ -201,49 +196,3 @@ func (m *BaseModel[T]) List(
 
 	return data, total, nil
 }
-
-// func (m *BaseModel[T]) List(
-// 	ctx context.Context,
-// 	opt *ListOptions[T],
-// ) ([]T, int64, error) {
-// 	q := NewQuery()
-// 	if opt.Search != "" {
-// 		q.AddSearch(opt.SearchIn, opt.Search)
-// 	}
-
-// 	if len(opt.Ids) > 0 {
-// 		q.AddIDs("id", opt.Ids)
-// 	}
-
-// 	if !reflect.ValueOf(opt.Filter).IsZero() {
-// 		b := bson.M{}
-// 		if err := helper.StructToBSON(opt.Filter, &b); err == nil {
-// 			q.Add(b)
-// 		}
-// 		q.Add(b)
-// 	}
-
-// 	if opt.CustomQuery != nil {
-// 		opt.CustomQuery(q)
-// 	}
-
-// 	pipeline := mongo.Pipeline{}
-
-// 	if match := q.Build(); len(match) > 0 {
-// 		pipeline = append(pipeline, bson.D{{Key: "$match", Value: match}})
-// 	}
-
-// 	if opt.CustomPipeline != nil {
-// 		pipeline = opt.CustomPipeline(pipeline)
-// 	}
-
-// 	pipeline = append(pipeline, FacetDataTotal(opt.Limit, opt.Skip))
-// 	pipeline = helper.ApplyArrayDateConv(pipeline, "data")
-
-// 	var res []AggregatePageResult[T]
-// 	if err := m.root.Aggregate(ctx, pipeline, &res); err != nil {
-// 		return nil, 0, err
-// 	}
-// 	data, total := ParseAggregateResult(res)
-// 	return data, total, nil
-// }

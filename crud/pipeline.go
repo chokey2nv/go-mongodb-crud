@@ -7,8 +7,8 @@ import (
 
 func Paginate(limit, skip int64) mongo.Pipeline {
 	return mongo.Pipeline{
-		bson.D{{"$skip", skip}},
-		bson.D{{"$limit", limit}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
 	}
 }
 
@@ -35,17 +35,6 @@ func ParseAggregateResult[T any](res []AggregatePageResult[T]) ([]T, int64) {
 
 	return r.Data, total
 }
-// func ParseAggregateResult[T any](res []AggregatePageResult[T]) ([]T, int64) {
-// 	if len(res) == 0 {
-// 		return []T{}, 0
-// 	}
-// 	out := res[0].Data
-// 	var total int64 = 0
-// 	if len(res[0].Total) > 0 {
-// 		total = res[0].Total[0].Count
-// 	}
-// 	return out, total
-// }
 
 // FacetDataTotal constructs a $facet stage with data and total count.
 // Limit/skip are applied inside the facet so you can still get total.

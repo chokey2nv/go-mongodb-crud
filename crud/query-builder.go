@@ -16,7 +16,7 @@ func NewQuery() *QueryBuilder {
 
 // AND
 func (q *QueryBuilder) And(cond bson.M) {
-	if cond == nil || len(cond) == 0 {
+	if len(cond) == 0 {
 		return
 	}
 	q.ands = append(q.ands, cond)
@@ -24,7 +24,7 @@ func (q *QueryBuilder) And(cond bson.M) {
 
 // OR
 func (q *QueryBuilder) Or(cond bson.M) {
-	if cond == nil || len(cond) == 0 {
+	if len(cond) == 0 {
 		return
 	}
 	q.ors = append(q.ors, cond)
