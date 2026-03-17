@@ -151,7 +151,9 @@ func (m *BaseModel[T]) List(
 	ctx context.Context,
 	opt *ListOptions[T],
 ) ([]T, int64, error) {
+
 	q := NewQuery()
+
 	if opt.Search != "" {
 		q.AddSearch(opt.SearchIn, opt.Search)
 	}
@@ -162,10 +164,9 @@ func (m *BaseModel[T]) List(
 
 	if !reflect.ValueOf(opt.Filter).IsZero() {
 		b := bson.M{}
-		if err := helper.StructToBSON(opt.Filter, &b); err == nil {
+		if err := helper.StructToBSON(opt.Filter, &b); err == nil && len(b) > 0 {
 			q.Add(b)
 		}
-		q.Add(b)
 	}
 
 	if opt.CustomQuery != nil {
@@ -186,9 +187,58 @@ func (m *BaseModel[T]) List(
 	pipeline = helper.ApplyArrayDateConv(pipeline, "data")
 
 	var res []AggregatePageResult[T]
+
 	if err := m.root.Aggregate(ctx, pipeline, &res); err != nil {
 		return nil, 0, err
 	}
+
 	data, total := ParseAggregateResult(res)
+
 	return data, total, nil
 }
+
+// func (m *BaseModel[T]) List(
+// 	ctx context.Context,
+// 	opt *ListOptions[T],
+// ) ([]T, int64, error) {
+// 	q := NewQuery()
+// 	if opt.Search != "" {
+// 		q.AddSearch(opt.SearchIn, opt.Search)
+// 	}
+
+// 	if len(opt.Ids) > 0 {
+// 		q.AddIDs("id", opt.Ids)
+// 	}
+
+// 	if !reflect.ValueOf(opt.Filter).IsZero() {
+// 		b := bson.M{}
+// 		if err := helper.StructToBSON(opt.Filter, &b); err == nil {
+// 			q.Add(b)
+// 		}
+// 		q.Add(b)
+// 	}
+
+// 	if opt.CustomQuery != nil {
+// 		opt.CustomQuery(q)
+// 	}
+
+// 	pipeline := mongo.Pipeline{}
+
+// 	if match := q.Build(); len(match) > 0 {
+// 		pipeline = append(pipeline, bson.D{{Key: "$match", Value: match}})
+// 	}
+
+// 	if opt.CustomPipeline != nil {
+// 		pipeline = opt.CustomPipeline(pipeline)
+// 	}
+
+// 	pipeline = append(pipeline, FacetDataTotal(opt.Limit, opt.Skip))
+// 	pipeline = helper.ApplyArrayDateConv(pipeline, "data")
+
+// 	var res []AggregatePageResult[T]
+// 	if err := m.root.Aggregate(ctx, pipeline, &res); err != nil {
+// 		return nil, 0, err
+// 	}
+// 	data, total := ParseAggregateResult(res)
+// 	return data, total, nil
+// }
