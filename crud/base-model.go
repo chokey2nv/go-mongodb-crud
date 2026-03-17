@@ -2,6 +2,7 @@ package crud
 
 import (
 	"context"
+	"log"
 	"reflect"
 
 	"github.com/chokey2nv/go-mongodb-crud/helper"
@@ -158,10 +159,12 @@ func (m *BaseModel[T]) List(
 		q.AddSearch(opt.SearchIn, opt.Search)
 	}
 
+	log.Println("******* 0")
 	if len(opt.Ids) > 0 {
 		q.AddIDs("id", opt.Ids)
 	}
 
+	log.Println("******* 1")
 	if opt.Filter != nil {
 		b := bson.M{}
 		if err := helper.StructToBSON(opt.Filter, &b); err == nil && len(b) > 0 {
@@ -169,10 +172,12 @@ func (m *BaseModel[T]) List(
 		}
 	}
 
+	log.Println("******* 2")
 	if opt.CustomQuery != nil {
 		opt.CustomQuery(q)
 	}
 
+	log.Println("******* 3")
 	pipeline := mongo.Pipeline{}
 
 	if match := q.Build(); len(match) > 0 {
