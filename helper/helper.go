@@ -114,6 +114,9 @@ func CleanUpBSON(bsonResult *primitive.M, stepKey string) {
 }
 
 func StructToBSON(structObject interface{}, bsonResult *bson.M) error {
+	if structObject == nil {
+		return nil
+	}
 	byteValue, err := bson.Marshal(structObject)
 	if err != nil {
 		return err

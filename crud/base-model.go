@@ -118,7 +118,7 @@ type ListOptions[T Identifiable] struct {
 	Ids            []string
 	Search         string
 	SearchIn       []string // fields to search across
-	Filter         T
+	Filter         *T
 	CustomQuery    func(q *QueryBuilder) // custom filters
 	CustomPipeline func(pipeline mongo.Pipeline) mongo.Pipeline
 }
@@ -162,7 +162,7 @@ func (m *BaseModel[T]) List(
 		q.AddIDs("id", opt.Ids)
 	}
 
-	if !reflect.ValueOf(opt.Filter).IsZero() {
+	if opt.Filter != nil {
 		b := bson.M{}
 		if err := helper.StructToBSON(opt.Filter, &b); err == nil && len(b) > 0 {
 			q.Add(b)
