@@ -5,20 +5,20 @@ import (
 
 	"github.com/beevik/guid"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// primitive.NewDateTimeFromTime(time.Now())
 func ApplyBeforeInsertHooks(data bson.M) {
 	data["id"] = guid.NewString()
-	data["createdAt"] = primitive.NewDateTimeFromTime(time.Now())
-	data["updatedAt"] = primitive.NewDateTimeFromTime(time.Now())
+	data["createdAt"] = time.Now()
+	data["updatedAt"] = time.Now()
 }
 
 func ApplyBeforeUpdateHooks(update bson.M) {
 	if set, ok := update["$set"].(bson.M); ok {
-		set["updatedAt"] = primitive.NewDateTimeFromTime(time.Now())
+		set["updatedAt"] = time.Now()
 	} else {
-		update["$set"] = bson.M{"updatedAt": primitive.NewDateTimeFromTime(time.Now())}
+		update["$set"] = bson.M{"updatedAt": time.Now()}
 	}
 }
 
