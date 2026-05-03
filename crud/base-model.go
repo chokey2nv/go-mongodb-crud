@@ -184,7 +184,7 @@ func (m *BaseModel[T]) List(
 	}
 
 	pipeline = append(pipeline, FacetDataTotal(opt.Limit, opt.Skip))
-	pipeline = helper.ApplyArrayDateConv(pipeline, "data")
+	// pipeline = helper.ApplyArrayDateConv(pipeline, "data")
 
 	var res []AggregatePageResult[T]
 

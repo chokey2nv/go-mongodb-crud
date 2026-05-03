@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/chokey2nv/go-mongodb-crud/helper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -46,24 +45,15 @@ func (r *RootModel[T]) Update(ctx context.Context, filter, update bson.M) error 
 	return err
 }
 
-/**
-pipeline := helper.ApplyNamedDateConvs(
-		mongo.Pipeline{},
-		[]string{"createdAt", "updatedAt"},
-	)
-
-	pipeline = append(pipeline, bson.D{
-		{Key: "$match", Value: filter},
-	})**/
 
 func (r *RootModel[T]) FindOne(ctx context.Context, pipeline mongo.Pipeline) (T, error) {
 	var outs []T
 	var out T
 
-	pipeline = helper.ApplyNamedDateConvs(
-		pipeline,
-		[]string{"createdAt", "updatedAt"},
-	)
+	// pipeline = helper.ApplyNamedDateConvs(
+	// 	pipeline,
+	// 	[]string{"createdAt", "updatedAt"},
+	// )
 	err := r.Aggregate(ctx, pipeline, &outs)
 
 	if err != nil {
